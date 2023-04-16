@@ -20,3 +20,9 @@ void readDistances(){
 void print(String text){
    Serial.print(text);
 }
+
+/********** botão **********/
+
+void waitForButton (){
+  while(digitalRead(but_pin));
+}

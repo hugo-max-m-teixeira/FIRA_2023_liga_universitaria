@@ -31,9 +31,14 @@
 #define trig_L A0
 #define echo_L A1
 
+// Botão push-button:
+#define but_pin 12
+
+// Definições de macros para testes (descomente/comente conforme necessário):
 #define show_logs true
-#define test_all
-#define test_ultra 
+
+//#define ultra_test 
+//#define motors_test
 
 /********** Objetos **********/
 DC_motor_controller motorL;
@@ -57,6 +62,9 @@ void setup() {
   // Motor direito (right):
   if(show_logs) Serial.begin(9600);
   print("iniciando programa...\n");
+
+  // Botão:
+  pinMode(but_pin, INPUT_PULLUP);
   
   motorR.hBridge(IN1_R, IN2_R, EN_R);
   motorR.setEncoderPin(A_motor_R, B_motor_R);
@@ -70,19 +78,16 @@ void setup() {
   motorL.setEncoderPin(A_motor_L, B_motor_L);
   motorL.setRR(21.3);
   motorL.setPins();
-  //motorL.debugMaxVel();
   attachInterrupt(1 , isrL, FALLING);
 
   both.setGyreDegreesRatio(3.7, 180);
 
-  /*#if defined test
-    testCode();
-  #endif*/
+  testCode(); // Programa de auto-teste, caso as macros de teste estejam ativadas.
+
+  waitForButton();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  testCode();
-  return;
-  
+
 }
