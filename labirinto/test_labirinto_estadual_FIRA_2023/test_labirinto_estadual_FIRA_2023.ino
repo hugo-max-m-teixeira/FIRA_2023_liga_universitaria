@@ -50,6 +50,23 @@ My_ultrassonic ultraR(trig_R, echo_R);
 My_ultrassonic ultraL(trig_L, echo_L);
 
 
+/********** Controle PID **********/
+
+float error, last_error, P, I, D, PID;
+const float	Kp = 1,
+			Ki = 0.02,
+			Kd = 0;
+			
+uint64_t last_compute;
+
+const uint16_t refresh_time = 250;
+const int set_point = 4;
+
+const int PID_limit = 50;
+
+#define using_integral_limit
+const float integral_limit = 80;
+
 /********** protótipo de funções **********/
 void print(String text);
 
@@ -62,6 +79,10 @@ void setup() {
   // Motor direito (right):
   if(show_logs) Serial.begin(9600);
   print("iniciando programa...\n");
+
+  //Sensor de distância ultrassônico:
+  ultraL.setPins();
+  ultraR.setPins();
 
   // Botão:
   pinMode(but_pin, INPUT_PULLUP);
@@ -85,9 +106,50 @@ void setup() {
   testCode(); // Programa de auto-teste, caso as macros de teste estejam ativadas.
 
   waitForButton();
+  
+  last_compute = millis();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  
+  const int base_vel = 50;
+  
+  readDistances();
+  
+  int middle = (distanceR + distanceL) / 2;
 
+  compute_PID(middle);
+  
+  
+  both.together(base_vel - PID, base_vel + PID);
+  
+
+}
+
+void compute_PID(float input){
+	uint16_t delta_time = millis() - last_compute;
+	
+	if(delta_time >= refresh_time){
+		delta_time = delta_time / 1000.0;
+		
+		error = set_point - input;
+	
+		P = error *  Kp;
+		#ifdef using_integral_limit
+			I += (abs(I) >= integral_limit) ? 0 : (error * Ki * delta_time); 
+		#else 
+			I += error * Ki * delta_time
+		#endif
+	
+		D = error * Kd / delta_time;
+		
+		PID = P + I + D;
+		
+		if(PID > PID_limit) PID = PID_limit;
+		
+		last_compute = millis();
+		last_error = error;
+		
+	}
 }
