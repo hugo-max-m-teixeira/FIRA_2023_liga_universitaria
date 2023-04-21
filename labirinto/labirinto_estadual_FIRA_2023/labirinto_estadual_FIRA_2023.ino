@@ -54,13 +54,13 @@ My_ultrassonic ultraL(trig_L, echo_L);
 /********** Controle PID **********/
 
 float error, last_error, P, I, D, PID;
-const float	Kp = 12,       //4
-			Ki = 0.03,    //0.08
-			Kd = 0.01;	  //0.01
+const float	Kp = 10.5,       //10.5
+			Ki = 0.025,    //0.025
+			Kd = 0.2;	  //0.02
 			
 uint64_t last_compute;
 
-const uint16_t refresh_time = 150;
+const uint16_t refresh_time = 110;
 float set_point = 4;
 
 const int PID_limit = 140;
@@ -122,12 +122,13 @@ void loop() {
   
   int middle = (distanceR + distanceL) / 2;
   
+  //Set_point = 6;
   set_point = middle;
 
   compute_PID(distanceR);
   
   vel_R = base_vel + PID;
-  vel_L = base_vel - PID;
+  vel_L = base_vel - (PID*1.8);
   
   print("\n\nVelcidade direito: ");
   print(String(vel_R));
@@ -138,7 +139,7 @@ void loop() {
   
   
   motorR.walk(vel_R);
-  motorL.walk(vel_L*1.2);
+  motorL.walk(vel_L);
   
 
 }
@@ -158,7 +159,7 @@ void compute_PID(float input){
 			I += error * Ki * delta_time
 		#endif
 	
-		D = error * Kd / delta_time;
+		D = (error - last_error) * Kd / delta_time;
 		
 		
 		PID = P + I + D;
