@@ -37,6 +37,7 @@
 // Definições de macros para testes (descomente/comente conforme necessário):
 #define show_logs true
 
+//#define print_PID_values
 //#define ultra_test 
 //#define motors_test
 
@@ -53,25 +54,27 @@ My_ultrassonic ultraL(trig_L, echo_L);
 /********** Controle PID **********/
 
 float error, last_error, P, I, D, PID;
-const float	Kp = 1,
-			Ki = 0.02,
-			Kd = 0;
+const float	Kp = 12,       //4
+			Ki = 0.03,    //0.08
+			Kd = 0.01;	  //0.01
 			
 uint64_t last_compute;
 
-const uint16_t refresh_time = 250;
-const int set_point = 4;
+const uint16_t refresh_time = 150;
+float set_point = 4;
 
-const int PID_limit = 50;
+const int PID_limit = 140;
 
 #define using_integral_limit
-const float integral_limit = 80;
+const float integral_limit = 40;
 
 /********** protótipo de funções **********/
 void print(String text);
 
 /********** Constantes e variáveis **********/
 float distanceL=0, distanceR=0;
+
+int vel_R=0, vel_L=0;
 
 
 void setup() {
@@ -113,19 +116,35 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   
-  const int base_vel = 50;
+  const int base_vel = 30;
   
   readDistances();
   
-  //int middle = (distanceR + distanceL) / 2;
-  //compute_PID(middle);
-  //both.together(base_vel - PID, base_vel + PID);
+  int middle = (distanceR + distanceL) / 2;
+  
+  set_point = middle;
+
+  compute_PID(distanceR);
+  
+  vel_R = base_vel + PID;
+  vel_L = base_vel - PID;
+  
+  print("\n\nVelcidade direito: ");
+  print(String(vel_R));
+  print('\t' + String(PID));
+  print("\nVelcidade esquerdo: ");
+  print(String(vel_L));
+  
+  
+  
+  motorR.walk(vel_R);
+  motorL.walk(vel_L*1.2);
   
 
 }
 
 void compute_PID(float input){
-	uint16_t delta_time = millis() - last_compute;
+	float delta_time = millis() - last_compute;
 	
 	if(delta_time >= refresh_time){
 		delta_time = delta_time / 1000.0;
@@ -141,7 +160,21 @@ void compute_PID(float input){
 	
 		D = error * Kd / delta_time;
 		
+		
 		PID = P + I + D;
+		
+		#ifdef print_PID_values
+		
+		print("PID values:\nP = ");
+		print(String(P));
+		print("\nI = ");
+		print(String(I));
+		print("\nD = ");
+		print(String(D));
+		print("\n\n");
+		
+		#endif
+		
 		
 		if(PID > PID_limit) PID = PID_limit;
 		

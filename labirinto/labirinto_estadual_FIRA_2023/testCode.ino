@@ -1,6 +1,5 @@
 void testCode() {
   #ifdef ultra_test
-  	print("Iniciando teste dos sensores de distância ultrasonicos...");
     while(digitalRead(but_pin)){
     	readDistances();
       print("\n\nDistancia Esquerdo: ");
