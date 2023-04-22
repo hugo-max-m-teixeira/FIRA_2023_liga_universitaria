@@ -54,13 +54,13 @@ My_ultrassonic ultraL(trig_L, echo_L);
 /********** Controle PID **********/
 
 float error, last_error, P, I, D, PID;
-const float	Kp = 10.5,       //10.5
-			Ki = 0.025,    //0.025
-			Kd = 0.2;	  //0.02
+const float	Kp = 8,       //7.5
+			Ki = 0.02,    //0.02
+			Kd = 0.04;	  //0.04
 			
 uint64_t last_compute;
 
-const uint16_t refresh_time = 110;
+const uint16_t refresh_time = 80;
 float set_point = 4;
 
 const int PID_limit = 140;
@@ -116,19 +116,30 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   
-  const int base_vel = 30;
+  const int base_vel = 50;
   
   readDistances();
   
-  int middle = (distanceR + distanceL) / 2;
+  int middle = (distanceR + distanceL) / 2.0;
   
   //Set_point = 6;
   set_point = middle;
 
   compute_PID(distanceR);
   
-  vel_R = base_vel + PID;
-  vel_L = base_vel - (PID*1.8);
+  if(PID < 0){
+  	PID = PID * 1.2;
+  	vel_R = base_vel + PID;	// Gira mais devagar
+  	vel_L = base_vel - (PID*1.1); // Gira mais rápido
+  } else {
+  	vel_R = base_vel + PID;
+  	vel_L = base_vel - PID;
+  }
+  
+  // Momento em que a esquerda vai para frente, maior dificuldade;
+  //-> Roda esquerda mais rápida -> PID negativo
+  
+  
   
   print("\n\nVelcidade direito: ");
   print(String(vel_R));
@@ -140,7 +151,7 @@ void loop() {
   
   motorR.walk(vel_R);
   motorL.walk(vel_L);
-  
+  print("\nDistancia ultra direito: "+(String)distanceR);
 
 }
 
