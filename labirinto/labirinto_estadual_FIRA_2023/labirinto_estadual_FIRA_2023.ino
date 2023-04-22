@@ -7,7 +7,7 @@
 
 // Motores:
 // Direito (right):
-#define IN1_R 8 
+#define IN1_R 8
 #define IN2_R 9
 #define EN_R 11
 #define A_motor_R 2
@@ -38,7 +38,7 @@
 #define show_logs true
 
 //#define print_PID_values
-//#define ultra_test 
+//#define ultra_test
 //#define motors_test
 
 /********** Objetos **********/
@@ -54,13 +54,13 @@ My_ultrassonic ultraL(trig_L, echo_L);
 /********** Controle PID **********/
 
 float error, last_error, P, I, D, PID;
-const float	Kp = 8,       //7.5
-			Ki = 0.02,    //0.02
-			Kd = 0.04;	  //0.04
-			
+const float  Kp = 6.5,     //7.5
+             Ki = 0.02,    //0.02
+             Kd = 0.04;    //0.04
+
 uint64_t last_compute;
 
-const uint16_t refresh_time = 80;
+const uint16_t refresh_time = 60; //80
 float set_point = 4;
 
 const int PID_limit = 140;
@@ -72,15 +72,15 @@ const float integral_limit = 40;
 void print(String text);
 
 /********** Constantes e variáveis **********/
-float distanceL=0, distanceR=0;
+float distanceL = 0, distanceR = 0;
 
-int vel_R=0, vel_L=0;
+int vel_R = 0, vel_L = 0;
 
 
 void setup() {
   // put your setup code here, to run once:
   // Motor direito (right):
-  if(show_logs) Serial.begin(9600);
+  if (show_logs) Serial.begin(9600);
   print("iniciando programa...\n");
 
   //Sensor de distância ultrassônico:
@@ -89,7 +89,7 @@ void setup() {
 
   // Botão:
   pinMode(but_pin, INPUT_PULLUP);
-  
+
   motorR.hBridge(IN1_R, IN2_R, EN_R);
   motorR.setEncoderPin(A_motor_R, B_motor_R);
   motorR.setRR(21.3);
@@ -109,89 +109,89 @@ void setup() {
   testCode(); // Programa de auto-teste, caso as macros de teste estejam ativadas.
 
   waitForButton();
-  
+
   last_compute = millis();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
-  const int base_vel = 50;
-  
+
+  const int base_vel = 50; //50
+
   readDistances();
-  
+
   int middle = (distanceR + distanceL) / 2.0;
-  
+
   //Set_point = 6;
   set_point = middle;
 
   compute_PID(distanceR);
-  
-  if(PID < 0){
-  	PID = PID * 1.2;
-  	vel_R = base_vel + PID;	// Gira mais devagar
-  	vel_L = base_vel - (PID*1.1); // Gira mais rápido
+
+  if (PID < 0) {
+    PID = PID * 1.2;
+    vel_R = base_vel + PID; // Gira mais devagar
+    vel_L = base_vel - (PID * 1.1); // Gira mais rápido
   } else {
-  	vel_R = base_vel + PID;
-  	vel_L = base_vel - PID;
+    vel_R = base_vel + PID;
+    vel_L = base_vel - PID;
   }
-  
+
   // Momento em que a esquerda vai para frente, maior dificuldade;
   //-> Roda esquerda mais rápida -> PID negativo
-  
-  
-  
+
+
+
   print("\n\nVelcidade direito: ");
   print(String(vel_R));
   print('\t' + String(PID));
   print("\nVelcidade esquerdo: ");
   print(String(vel_L));
-  
-  
-  
+
+
+
   motorR.walk(vel_R);
   motorL.walk(vel_L);
-  print("\nDistancia ultra direito: "+(String)distanceR);
+  print("\nDistancia ultra direito: " + (String)distanceR);
 
 }
 
-void compute_PID(float input){
-	float delta_time = millis() - last_compute;
-	
-	if(delta_time >= refresh_time){
-		delta_time = delta_time / 1000.0;
-		
-		error = set_point - input;
-	
-		P = error *  Kp;
-		#ifdef using_integral_limit
-			I += (abs(I) >= integral_limit) ? 0 : (error * Ki * delta_time); 
-		#else 
-			I += error * Ki * delta_time
-		#endif
-	
-		D = (error - last_error) * Kd / delta_time;
-		
-		
-		PID = P + I + D;
-		
-		#ifdef print_PID_values
-		
-		print("PID values:\nP = ");
-		print(String(P));
-		print("\nI = ");
-		print(String(I));
-		print("\nD = ");
-		print(String(D));
-		print("\n\n");
-		
-		#endif
-		
-		
-		if(PID > PID_limit) PID = PID_limit;
-		
-		last_compute = millis();
-		last_error = error;
-		
-	}
+void compute_PID(float input) {
+  float delta_time = millis() - last_compute;
+
+  if (delta_time >= refresh_time) {
+    delta_time = delta_time / 1000.0;
+
+    error = set_point - input;
+
+    P = error *  Kp;
+#ifdef using_integral_limit
+    I += (abs(I) >= integral_limit) ? 0 : (error * Ki * delta_time);
+#else
+    I += error * Ki * delta_time
+#endif
+
+    D = (error - last_error) * Kd / delta_time;
+
+
+    PID = P + I + D;
+
+#ifdef print_PID_values
+
+    print("PID values:\nP = ");
+    print(String(P));
+    print("\nI = ");
+    print(String(I));
+    print("\nD = ");
+    print(String(D));
+    print("\n\n");
+
+#endif
+
+
+    if (PID > PID_limit) PID = PID_limit;
+
+    last_compute = millis();
+    last_error = error;
+
+  }
 }
