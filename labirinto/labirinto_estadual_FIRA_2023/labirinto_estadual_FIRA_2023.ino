@@ -35,7 +35,7 @@
 #define but_pin 12
 
 // Definições de macros para testes (descomente/comente conforme necessário):
-#define show_logs true
+#define show_logs false
 
 //#define print_PID_values
 //#define ultra_test
@@ -54,19 +54,19 @@ My_ultrassonic ultraL(trig_L, echo_L);
 /********** Controle PID **********/
 
 float error, last_error, P, I, D, PID;
-const float  Kp = 6.5,     //7.5
-             Ki = 0.02,    //0.02
-             Kd = 0.04;    //0.04
+const float  Kp = 9.1,     //7.5
+             Ki = 0.05,    //0.02
+             Kd = 0.03;    //0.04
 
-uint64_t last_compute;
+unsigned int  last_compute;
 
-const uint16_t refresh_time = 60; //80
+const uint16_t refresh_time = 90; //80
 float set_point = 4;
 
-const int PID_limit = 140;
+const int PID_limit = 150;
 
 #define using_integral_limit
-const float integral_limit = 40;
+const float integral_limit = 9;
 
 /********** protótipo de funções **********/
 void print(String text);
@@ -109,6 +109,8 @@ void setup() {
   testCode(); // Programa de auto-teste, caso as macros de teste estejam ativadas.
 
   waitForButton();
+  
+  both.together(50, 0.6);
 
   last_compute = millis();
 }
@@ -116,7 +118,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  const int base_vel = 50; //50
+  const int base_vel = 70; //50
 
   readDistances();
 
@@ -127,14 +129,17 @@ void loop() {
 
   compute_PID(distanceR);
 
-  if (PID < 0) {
-    PID = PID * 1.2;
+  /*if (PID < 0) {
+    PID = PID * 1.1;
     vel_R = base_vel + PID; // Gira mais devagar
     vel_L = base_vel - (PID * 1.1); // Gira mais rápido
   } else {
     vel_R = base_vel + PID;
     vel_L = base_vel - PID;
-  }
+  }*/
+  
+  vel_R = base_vel + PID;
+  vel_L = base_vel - PID;
 
   // Momento em que a esquerda vai para frente, maior dificuldade;
   //-> Roda esquerda mais rápida -> PID negativo
