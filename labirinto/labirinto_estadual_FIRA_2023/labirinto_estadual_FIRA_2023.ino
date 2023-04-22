@@ -54,9 +54,9 @@ My_ultrassonic ultraL(trig_L, echo_L);
 /********** Controle PID **********/
 
 float error, last_error, P, I, D, PID;
-const float  Kp = 9.1,     //7.5
+const float  Kp = 13,     //7.5
              Ki = 0.05,    //0.02
-             Kd = 0.03;    //0.04
+             Kd = 0.012;    //0.04
 
 unsigned int  last_compute;
 
@@ -66,7 +66,7 @@ float set_point = 4;
 const int PID_limit = 150;
 
 #define using_integral_limit
-const float integral_limit = 9;
+const float integral_limit = 7;
 
 /********** protótipo de funções **********/
 void print(String text);
@@ -118,7 +118,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  const int base_vel = 70; //50
+  const int base_vel = 100; //50
 
   readDistances();
 
@@ -129,18 +129,18 @@ void loop() {
 
   compute_PID(distanceR);
 
-  /*if (PID < 0) {
-    PID = PID * 1.1;
+  if (PID > 0) {
+    PID = PID * 1.2;
     vel_R = base_vel + PID; // Gira mais devagar
-    vel_L = base_vel - (PID * 1.1); // Gira mais rápido
+    vel_L = base_vel - (PID); // Gira mais rápido
   } else {
     vel_R = base_vel + PID;
     vel_L = base_vel - PID;
-  }*/
-  
+  }
+  /*
   vel_R = base_vel + PID;
   vel_L = base_vel - PID;
-
+*/
   // Momento em que a esquerda vai para frente, maior dificuldade;
   //-> Roda esquerda mais rápida -> PID negativo
 
