@@ -54,9 +54,9 @@ My_ultrassonic ultraL(trig_L, echo_L);
 /********** Controle PID **********/
 
 float error, last_error, P, I, D, PID;
-const float  Kp = 13,     //7.5
-             Ki = 0.05,    //0.02
-             Kd = 0.012;    //0.04
+const float  Kp = 10,     //13
+             Ki = 0.01,    //0.05
+             Kd = 0.001;    //0.04
 
 unsigned int  last_compute;
 
